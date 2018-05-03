@@ -47,9 +47,7 @@ M = round(params.N*params.alpha);
 %initialise weights based on scale of summary stats
 prior_sample = draw_from_prior(M,prior_width,params);
 theta_store = zeros(M,params.num_params,params.num_generations);
-%ss_store = zeros(M,params.num_ss,params.repeats,params.num_generations);
 weights_store = zeros(M,params.num_generations); %ABC weights
-%dist_weights_store = zeros(params.num_generations,params.num_ss); %distance fn weights
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -134,7 +132,6 @@ optim_weights
 fval
     current_weights=optim_weights;
     end
-%    [L,inf_gain,theta_selected] = get_distance_from_prior_to_post(current_weights,sstar,ss,theta_star,t,prior_sample,params);
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
     dist = weighted_distance(sstar,repmat(ss,params.N,1,1),10.^current_weights);
@@ -142,7 +139,6 @@ fval
     selected = sort_ind(1:M);
     %once decided distances, then can select samples
     theta_store(:,:,t) = theta_star(selected,:);
-    %ss_store(:,:,:,t) = sstar(selected,:,:); %doesn't seem much point storing this, will just eat memory
     weights_store(:,t) = weights_star(selected)./sum(weights_star(selected)); %store normalized weights
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -182,9 +178,3 @@ fprintf('And distance of posterior mean from real parameters is: %f \n',bias);
 save(params.save_name);
 toc(my_t)
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-        
-%could try a pilot run of ABC (equal weights for summary statistics) to get estimates of the parameters
-%giving weight to noisy summary statistics still results in gain of
-%information over the prior, probably

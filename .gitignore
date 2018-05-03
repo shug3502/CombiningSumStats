@@ -1,5 +1,5 @@
 *.mat
-old_and_unncessary/
+old_and_unnecessary/
 */*.csv
 dev/
 Latex/
