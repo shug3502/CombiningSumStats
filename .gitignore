@@ -5,3 +5,8 @@ dev/
 Latex/
 Log_and_mat_files/
 .Rhistory
+code_for_figures/*.log
+code_for_figures/*.mat
+code_for_figures/*.eps
+code_for_figures/*.m~
+code_for_figures/*.pdf

@@ -4,17 +4,17 @@ data {
 }
 
 parameters {
-  real<lower=(-2),upper=2> log_theta;
+  real<lower=(0),upper=2> log_theta;
 }
 
 transformed parameters {
-  real<lower=10^(-2),upper=10^(2)> theta;
+  real<lower=10^(0),upper=10^(2)> theta;
   theta = 10^log_theta;
 }
 
 model {
   // Priors
-  log_theta ~ uniform(-4, 4);
+  log_theta ~ uniform(0, 2);
   // Likelihood
   y ~ uniform(0,theta);
 }

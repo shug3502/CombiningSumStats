@@ -2,7 +2,7 @@
 params.N = 5*10^4; %number of ABC samples to generate at each generation
 params.max_num_weights = 5000; %look at this many weights/this many generations in the gradient descent
 params.num_params = 1;
-params.num_ss=6;
+params.num_ss=10;
 params.num_generations = 5;
 params.alpha = 0.05;
 params.proposal_sd = 0.25;
@@ -18,7 +18,7 @@ params.lambda = 0;
 params.repeats = 1;
 params.prior_width = 2;
 params.ref = [1];  %[0,0,-prior_width/2]; %reference vector for (very slightly) more flexible prior
-params.save_name = 'toy_model_v105';
+params.save_name = 'toy_model_v201';
 params.theta_real = 10;
 params.dist_metric = @(x,y) hellinger_dist(x',y'); %careful about transpose, think we need it here due to 1D parameters
 

@@ -1,4 +1,5 @@
-function [prior_comparison, bias, search_timing, abc_timing, ss,final_samples] = adapt_weights_of_ABC_KNN(params)
+function [prior_comparison, bias, search_timing, abc_timing, ss,...
+    final_samples, optim_weights] = adapt_weights_of_ABC_KNN(params)
 %code restructured after reviewer comments nad using KNN estimator for
 %hellinger distance
 % JH 19/12/2017
