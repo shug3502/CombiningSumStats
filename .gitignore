@@ -1,0 +1,6 @@
+*.mat
+old_and_unncessary/
+*/*.csv
+dev/
+Latex/
+Log_and_mat_files/
