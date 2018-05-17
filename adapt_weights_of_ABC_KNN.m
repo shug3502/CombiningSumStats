@@ -1,5 +1,5 @@
 function [prior_comparison, bias, search_timing, abc_timing, ss,...
-    final_samples, optim_weights] = adapt_weights_of_ABC_KNN(params)
+    final_samples, current_weights] = adapt_weights_of_ABC_KNN(params)
 %code restructured after reviewer comments nad using KNN estimator for
 %hellinger distance
 % JH 19/12/2017
@@ -116,14 +116,14 @@ while t<=params.num_generations
         current_weights = zeros(size(current_weights));
     end
     if params.set_to_scaled_weights
-        current_weights = [-4,-4,4]; %log10(1./sig);
+        current_weights = log10(1./sig);
     end
     if (params.set_to_scaled_weights+params.set_to_uniform_weights<=0)
     %try to solve with inbuilt optimizers
     fun = @(x) get_distance_from_prior_to_post_KNN(x,sstar,ss,theta_star,t,prior_sample,params);
     opts = optimset('Display', 'off');
     [optim_weights,fval] = fmincon(fun,params.weights_width*rand(1,params.num_ss),[],[],[],[],-params.weights_width*ones(1,params.num_ss),params.weights_width*ones(1,params.num_ss),[],opts);
-    for starts=1:10 %run optimizer from multiple random starting pts
+    for starts=1:params.optim_restarts %run optimizer from multiple random starting pts
         [optim_weights_alt,fval_alt] = fmincon(fun,params.weights_width*rand(1,params.num_ss),[],[],[],[],-params.weights_width*ones(1,params.num_ss),params.weights_width*ones(1,params.num_ss),[],opts);
         [fval,is_improvement] = max([fval,fval_alt]);
         optim_weights = optim_weights_alt*(is_improvement-1) + optim_weights*(2-is_improvement);
@@ -157,7 +157,7 @@ map_est = zeros(1,params.num_params); %estimate of maximum posterior parameters
         stairs(bin_edges,n1,'linewidth',3); set(gca,'fontsize',20);
         xlabel('\theta'); ylabel('frequency');
         method = 1 + params.set_to_uniform_weights + 2*params.set_to_scaled_weights; %1 for adaptive weights, 2 uniform, 3 scaled
-        save(sprintf('%s_posterior_plot_param%d_%d.mat',params.save_name,i,method),'n1','bin_edges');
+        save(sprintf('%s_posterior_plot_param%d_%d.mat',params.save_name,i,method),'n1','bin_edges','theta_store');
 	[mn1, ind_n1] = max(n1);
 	map_est(i) = bin_edges(ind_n1);
     end

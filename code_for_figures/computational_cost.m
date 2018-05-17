@@ -43,7 +43,7 @@ if run_simulations
             params.set_to_scaled_weights=0;
             params.alpha = alpha2;
         end
-        [prior_comparison, bias, search_timing, abc_timing] = adapt_weights_of_ABC_tidied(params);
+        [prior_comparison, bias, search_timing, abc_timing] = adapt_weights_of_ABC_KNN(params);
         hell_dist_store(loop_ind) = prior_comparison;
         bias_store(loop_ind) = bias;
         search_time_store(loop_ind) = search_timing;

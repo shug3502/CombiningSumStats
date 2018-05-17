@@ -1,4 +1,4 @@
-function make_figure_posterior_stairs_plot(params)
+function make_figure_posterior_stairs_plot(params,run_simulations,include_stan_post)
 %created 6/6/16
 %JH
 
@@ -30,8 +30,8 @@ function make_figure_posterior_stairs_plot(params)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 close all;
 addpath ../ %make use can access functions in Summary_stats directory
-run_simulations = 1;
-include_stan_post = 1;
+%run_simulations = 1;
+%include_stan_post = 0;
 
 if nargin<1
     my_params_store; %load params (or load different params)
@@ -57,7 +57,8 @@ if run_simulations
             params.set_to_uniform_weights=0;
             params.set_to_scaled_weights=1;
         end
-        [prior_comparison, bias, search_timing, abc_timing] = adapt_weights_of_ABC_KNN(params);
+        [prior_comparison, bias, search_timing, abc_timing, ss,...
+    final_samples, optim_weights] = adapt_weights_of_ABC_KNN(params);
         hell_dist_store(ind) = prior_comparison;
         bias_store(ind) = bias;
         search_time_store(ind) = search_timing;
@@ -66,17 +67,17 @@ if run_simulations
     qstr = sprintf('../%s_posterior_quality',params.save_name);
     save(qstr,'params','hell_dist_store','bias_store','search_time_store','abc_time_store'); %save info about quality of posterior
 end
-
-%plotting code
+%%%%%%%%%%%%%%%%%%%%%%%
+% New plotting code
 real_theta = params.theta_real;
 %load data from running ABC-smc
-counts = zeros(3,50);
 for i=1:params.num_params
     figure; hold all;
     for j=1:3 %loop over the methods for assigning the weights
         load(sprintf('%s_posterior_plot_param%d_%d.mat',params.save_name,i,j));
-        counts(j,:) = n1/sum(n1);
-        stairs(bin_edges,counts(j,:),'linewidth',3);
+        samples = theta_store(:,i,params.num_generations);
+        [f,xi] = ksdensity(samples); 
+        plot(xi,f,'LineWidth',3);
         set(gca,'fontsize',20);
         if i==2&(~isempty(strfind(params.save_name,'death_process')))
             xlabel('$$\log_{10} \sigma $$','interpreter','latex');
@@ -86,19 +87,64 @@ for i=1:params.num_params
         end
         ylabel('frequency');
     end
-    line([log10(real_theta(i)),log10(real_theta(i))],[0,max(max(counts))],'Color','k','LineStyle','--','linewidth',3);
+    line([log10(real_theta(i)),log10(real_theta(i))],[0,max(max(f))],'Color','k','LineStyle','--','linewidth',3);
     box on
     if include_stan_post
         % plot also true posterior sampled with stan
-        stan_samples = csvread('../toy_model_stan.csv',1);  %('../death_process_stan_estimates.csv',1);
-        n1 = histc(stan_samples(:,i),bin_edges);
-        stairs(bin_edges,n1/sum(n1),'linewidth',3);
+        if ~isempty(strfind(params.save_name,'death_process'))
+            stan_samples = csvread('stan/death_process_stan_estimates.csv',1);            
+        elseif ~isempty(strfind(params.save_name,'toy_model'))
+            stan_samples = csvread('stan/toy_model_stan.csv',1);
+        else 
+            error('unknown model: no stan fit available');
+        end
+        [f,xi] = ksdensity(stan_samples(:,i)); 
+        plot(xi,f,'LineWidth',3);
     end
     if i~=2
         loc = 'NorthWest';
     else
         loc = 'NorthEast';
     end
-    legend('Adaptive','Uniform','Scaled','True','Location',loc);
+    %legend('Adaptive','Uniform','Scaled','True','MCMC','Location',loc);
+    legend('Adaptive','Uniform','Scaled','True','MCMC')
     print(sprintf('%s_posterior_plot_param%d',params.save_name,i), '-depsc');
 end
+
+
+% 
+% %plotting code
+% real_theta = params.theta_real;
+% %load data from running ABC-smc
+% counts = zeros(3,50);
+% for i=1:params.num_params
+%     figure; hold all;
+%     for j=1:3 %loop over the methods for assigning the weights
+%         load(sprintf('%s_posterior_plot_param%d_%d.mat',params.save_name,i,j));
+%         counts(j,:) = n1/sum(n1);
+%         stairs(bin_edges,counts(j,:),'linewidth',3);
+%         set(gca,'fontsize',20);
+%         if i==2&(~isempty(strfind(params.save_name,'death_process')))
+%             xlabel('$$\log_{10} \sigma $$','interpreter','latex');
+%         else
+%             xlabel(sprintf('$$\\log_{10} \\theta $$'),'interpreter','latex');
+%             %xlabel(sprintf('$$\\log_{10} k_%d $$',i),'interpreter','latex');
+%         end
+%         ylabel('frequency');
+%     end
+%     line([log10(real_theta(i)),log10(real_theta(i))],[0,max(max(counts))],'Color','k','LineStyle','--','linewidth',3);
+%     box on
+%     if include_stan_post
+%         % plot also true posterior sampled with stan
+%         stan_samples = csvread('../toy_model_stan.csv',1);  %('../death_process_stan_estimates.csv',1);
+%         n1 = histc(stan_samples(:,i),bin_edges);
+%         stairs(bin_edges,n1/sum(n1),'linewidth',3);
+%     end
+%     if i~=2
+%         loc = 'NorthWest';
+%     else
+%         loc = 'NorthEast';
+%     end
+%     legend('Adaptive','Uniform','Scaled','True','Location',loc);
+%     print(sprintf('%s_posterior_plot_param%d',params.save_name,i), '-depsc');
+% end

@@ -5,4 +5,4 @@ function d_h = get_distance_from_prior_to_post_KNN(current_weights,sstar,ss,thet
     selected = sort_ind(1:M);
     %once decided distances, then can select samples
     theta_selected = theta_star(selected,:);  
-    d_h = hellinger_knn_estimator(theta_selected,prior_sample,5);
+    d_h = abs(hellinger_knn_estimator(prior_sample,theta_selected,5)); %based on theoretical argument, switch the order here so distance from posterior to prior

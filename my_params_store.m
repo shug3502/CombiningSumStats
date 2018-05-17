@@ -47,9 +47,11 @@ params.recording_interval = params.problem_t_end/(2^3);
 params.repeats = 5;
 params.prior_width = 4;
 params.ref = [-2];  %[0,0,-prior_width/2]; %reference vector for (very slightly) more flexible prior
-params.save_name = 'spatial_test_v101';
-params.theta_real = 0.1;%[1.16,0.84,0.58]; %[1, 0.0400, 0.0020, 0.5000]; %[1.16,0.42,0.58];  %[0.1,0.5];
+params.save_name = 'spatial_test_v204';
+params.theta_real = 0.1;
 params.dist_metric = @(x,y) hellinger_dist(x',y'); %careful about transpose, think we need it here due to 1D parameters
+params.optim_restarts = 30;
+params.weights_width = 6;
 
 %setup simbio model
 %load('../spatial_model.mat');

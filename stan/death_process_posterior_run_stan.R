@@ -20,15 +20,16 @@
   #   return(output)
   # }
 ##################################################  
-   identifier = 'death_processV107' #run identifier
+   identifier = 'death_processV213' #run identifier
    run_mcmc <- TRUE
    show_diagnostic_plots = TRUE
    parametersToPlot = c('k','log_k','sigma','log_sigma')
-   n <- 31 #ignore first time point, not informative, just initial condition
+   n <- 7 #ignore first time point, not informative, just initial condition
    times <- seq(from=0,to=20,length=(n+2))
    times = times[-(n+2)]
-   observations <- read.csv('code_for_figures/death_process_v107_data.csv',header=FALSE)
+   observations <- read.csv('../code_for_figures/death_process_v213_data.csv',header=FALSE)
    if (ncol(observations)!=n+2) warning('check using correct data, and n value, number of columns not n+2')
+#   observations <- observations[1:2,]
    # observations <- exp_decay(N=N,k=0.1,times[-1])   #c(6,4,3,2,1,1,1,1,1,1,1,rep(0,20))
    N <- observations[1,1]
    y <- observations[,c(-1,-(n+2))]
@@ -57,7 +58,7 @@
       print(paste("NOT SAVED ERROR:  ",err))
     }) # END tryCatch
   } else {
-    estimates = readRDS(paste('fits/model_comparison',identifier,'.rds',sep=''))
+    estimates = readRDS(paste('death_process',identifier,'.rds',sep=''))
   }
   
  print(estimates, pars = parametersToPlot)
