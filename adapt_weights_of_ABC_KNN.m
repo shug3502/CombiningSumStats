@@ -21,7 +21,6 @@ function [prior_comparison, bias, search_timing, abc_timing, ss,...
 rng(params.x);
 my_t = tic;
 prior_width = params.prior_width;
-%weights_width = params.weights_width; %prior_width+2; %specifies maximum and minimum values for sum stat weights on log10 scale
 abc_timing = 0; search_timing=0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -122,13 +121,12 @@ while t<=params.num_generations
     %try to solve with inbuilt optimizers
     fun = @(x) get_distance_from_prior_to_post_KNN(x,sstar,ss,theta_star,t,prior_sample,params);
     opts = optimset('Display', 'off');
-    [optim_weights,fval] = fmincon(fun,params.weights_width*rand(1,params.num_ss),[],[],[],[],-params.weights_width*ones(1,params.num_ss),params.weights_width*ones(1,params.num_ss),[],opts);
+    [optim_weights,fval] = fmincon(fun,params.weights_width*(rand(1,params.num_ss)),[],[],[],[],-params.weights_width*ones(1,params.num_ss),params.weights_width*ones(1,params.num_ss),[],opts);
     for starts=1:params.optim_restarts %run optimizer from multiple random starting pts
-        [optim_weights_alt,fval_alt] = fmincon(fun,params.weights_width*rand(1,params.num_ss),[],[],[],[],-params.weights_width*ones(1,params.num_ss),params.weights_width*ones(1,params.num_ss),[],opts);
+        [optim_weights_alt,fval_alt] = fmincon(fun,params.weights_width*(rand(1,params.num_ss)),[],[],[],[],-params.weights_width*ones(1,params.num_ss),params.weights_width*ones(1,params.num_ss),[],opts);
         [fval,is_improvement] = max([fval,fval_alt]);
         optim_weights = optim_weights_alt*(is_improvement-1) + optim_weights*(2-is_improvement);
     end
-%    [optim_weights,fval] = fminunc(fun,current_weights);
 optim_weights
 fval
     current_weights=optim_weights;
@@ -169,11 +167,11 @@ else
     [num1, centres] = hist(prior_sample,30);
     num2 = hist(theta_store(:,:,t-1),centres);
 end
-prior_comparison = params.dist_metric(num1,num2+eps);
+prior_comparison = hellinger_knn_estimator(prior_sample,theta_store(:,:,t-1),5);
 fprintf('Finally, information gain over the prior is: %f \n',prior_comparison);
 posterior_mean = sum((theta_store(:,:,t-1).*repmat(weights_store(:,t-1),1,params.num_params)),1)/sum(weights_store(:,t-1));
-bias2 = sqrt(sum((posterior_mean-log10(params.theta_real)).^2)); %using mean
-bias = sqrt(sum((map_est-log10(params.theta_real)).^2))
+bias = sqrt(sum((posterior_mean-log10(params.theta_real)).^2)); %using mean
+%bias = sqrt(sum((map_est-log10(params.theta_real)).^2))
 final_samples = theta_store(:,:,t-1);
 fprintf('And distance of posterior mean from real parameters is: %f \n',bias);
 save(params.save_name);

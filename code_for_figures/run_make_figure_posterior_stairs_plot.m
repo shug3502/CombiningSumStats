@@ -8,11 +8,14 @@ close all;
 cd ../
 addpath code_for_figures/ %make use can access functions in Summary_stats directory
 
-%death_process_params;
-%make_figure_posterior_stairs_plot(params,1,1);
+toy_params;
+make_figure_posterior_stairs_plot(params,0,1);
 
-%dimerization_params;
-%make_figure_posterior_stairs_plot(params,1,0);
+death_process_params;
+make_figure_posterior_stairs_plot(params,0,1);
+
+dimerization_params;
+make_figure_posterior_stairs_plot(params,0,0);
 
 my_params_store; %load params
-make_figure_posterior_stairs_plot(params,1,0);
+make_figure_posterior_stairs_plot(params,0,0);

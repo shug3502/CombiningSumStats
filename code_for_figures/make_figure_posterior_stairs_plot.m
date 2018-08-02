@@ -71,13 +71,17 @@ end
 % New plotting code
 real_theta = params.theta_real;
 %load data from running ABC-smc
+color_matrix =  [230,97,1;
+253,184,99;
+178,171,210;
+94,60,153]/256;
 for i=1:params.num_params
     figure; hold all;
-    for j=1:3 %loop over the methods for assigning the weights
+    for j=3:-1:1 %loop over the methods for assigning the weights
         load(sprintf('%s_posterior_plot_param%d_%d.mat',params.save_name,i,j));
         samples = theta_store(:,i,params.num_generations);
         [f,xi] = ksdensity(samples); 
-        plot(xi,f,'LineWidth',3);
+        plot(xi,f,'LineWidth',3, 'Color', color_matrix(4-j,:));
         set(gca,'fontsize',20);
         if i==2&(~isempty(strfind(params.save_name,'death_process')))
             xlabel('$$\log_{10} \sigma $$','interpreter','latex');
@@ -87,8 +91,6 @@ for i=1:params.num_params
         end
         ylabel('frequency');
     end
-    line([log10(real_theta(i)),log10(real_theta(i))],[0,max(max(f))],'Color','k','LineStyle','--','linewidth',3);
-    box on
     if include_stan_post
         % plot also true posterior sampled with stan
         if ~isempty(strfind(params.save_name,'death_process'))
@@ -99,7 +101,12 @@ for i=1:params.num_params
             error('unknown model: no stan fit available');
         end
         [f,xi] = ksdensity(stan_samples(:,i)); 
-        plot(xi,f,'LineWidth',3);
+        plot(xi,f,'LineWidth',3, 'Color', color_matrix(4,:));
+    end
+    line([log10(real_theta(i)),log10(real_theta(i))],[0,max(max(f))],'Color','k','LineStyle','--','linewidth',3);
+    box on    
+    if ~isempty(strfind(params.save_name,'death_process')) & i==2
+        xlim([-6.0,5.0])
     end
     if i~=2
         loc = 'NorthWest';
@@ -107,7 +114,21 @@ for i=1:params.num_params
         loc = 'NorthEast';
     end
     %legend('Adaptive','Uniform','Scaled','True','MCMC','Location',loc);
-    legend('Adaptive','Uniform','Scaled','True','MCMC')
+    if include_stan_post
+        legend('Scaled','Uniform','Adaptive','MCMC','True','Location',loc);
+    else
+        legend('Scaled','Uniform','Adaptive','True','Location',loc);
+    end
+
+%% Chris' Decimal Delight
+set(gca,'XTickLabel',arrayfun(@(s)sprintf('%0.1f', s), cellfun(@(s)str2num(s), get(gca,'XTickLabel')), 'UniformOutput', false))
+set(gca,'YTickLabel',arrayfun(@(s)sprintf('%0.1f', s), cellfun(@(s)str2num(s), get(gca,'YTickLabel')), 'UniformOutput', false))
+%% Ruth's Perfectly Processed PDFs
+% How to output pdfs from Matlab that are the same size etc
+set(gca,'LooseInset',get(gca,'TightInset'))
+set(gca,'FontSize',20)
+%set(gcf,'PaperUnits','centimeters','PaperSize',[20/3+0.2 16/3+0.2], 'PaperPosition', [0.1 0.1 20/3+0.1 16/3+0.1]);
+
     print(sprintf('%s_posterior_plot_param%d',params.save_name,i), '-depsc');
 end
 
