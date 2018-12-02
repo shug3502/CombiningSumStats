@@ -3,4 +3,4 @@ function out = gaussian_toy_model(theta,y,z)
 % gaussian toy problem as in prangle 2017
 % don't use inputs y and z, included so function has same arguments
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-out = [theta + 0.1*randn(1), randn(1)];
+out = [theta + 0.1*randn(1), 100*randn(1)];

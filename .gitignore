@@ -1,4 +1,5 @@
 *.mat
+*.m~
 old_and_unnecessary/
 */*.csv
 dev/
@@ -10,3 +11,4 @@ code_for_figures/*.mat
 code_for_figures/*.eps
 code_for_figures/*.m~
 code_for_figures/*.pdf
+figs/

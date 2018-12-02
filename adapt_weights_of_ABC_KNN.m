@@ -68,7 +68,7 @@ while t<=params.num_generations
             end
         end
         %store
-        weights_star = ones(params.N,1);
+        weights_star = ones(params.N,1)/params.N;
     else
         % pick previous particle and perturb
         sample_ind = discretesample(weights_store(:,t-1),params.N);
