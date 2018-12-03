@@ -1,6 +1,6 @@
 addpath ../fine-grained/mRNA/;
 
-params.N = 2*10^2; %number of ABC samples to generate at each generation
+params.N = 2*10^3; %number of ABC samples to generate at each generation
 params.num_params = 6;
 params.num_ss=1;
 params.num_generations = 5;
@@ -8,7 +8,7 @@ params.alpha = 0.5;
 params.set_to_uniform_weights = 0; %could set method with a string
 params.set_to_scaled_weights = 0;
 params.repeats = 1;
-params.save_name = 'mRNA_mfpt_model_v102';
+params.save_name = 'mRNA_mfpt_model_v103';
 params.theta_real = [1.16,0.8,0.11,0.42,0.84,0.58];
 params.dist_metric = @(x,y) hellinger_dist(x',y'); %careful about transpose, think we need it here due to 1D parameters
 
