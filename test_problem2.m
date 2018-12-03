@@ -6,8 +6,8 @@ if nargin<1
     t_end=100;
     recording_interval = 1;
 else
-    phi = theta(1);
-    sigma = theta(2);
+    phi = 10^theta(1);
+    sigma = 10^theta(2);
 end
 noise = 0; %magnitude of observation noise
 

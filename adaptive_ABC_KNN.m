@@ -1,4 +1,4 @@
-function [prior_comparison, bias, search_timing, abc_timing, ss,...
+function [bias, total_simulations, ...
     final_samples] = adaptive_ABC_KNN(params)
 %code restructured after reviewer comments nad using KNN estimator for
 %hellinger distance
@@ -17,8 +17,9 @@ rng(params.x);
 my_t = tic;
 abc_timing = 0; search_timing=0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+if params.verbose
 fprintf('Real parameters are %f \n', params.theta_real);
+end
 
 if isempty(params.data_input)
     ss = zeros(1,params.num_ss,params.repeats);
@@ -29,8 +30,8 @@ else
     ss = params.data_input;
 end
 if size(ss,2)~=params.num_ss
-    %    fprintf('Expect %d sum stats \n',numel(ss));
-    %    error('Must input correct number of summary statistics to expect.');
+        fprintf('Expect %d sum stats \n',numel(ss));
+        error('Must input correct number of summary statistics to expect.');
     params.num_ss = numel(ss);
 end
 if params.with_plot
@@ -58,7 +59,7 @@ while t<=params.num_generations
     %now generate abc samples
     if t==1
         %pick theta from prior
-        theta_star = params.draw_from_prior(M)
+        theta_star = params.draw_from_prior(M);
         sstar=zeros(M,params.num_ss,params.repeats);
         family_history_star = zeros(M,1);
         num_acceptances=0;
@@ -80,7 +81,6 @@ while t<=params.num_generations
         num_acceptances=0;
         while num_acceptances<M
             sample_ind = discretesample(weights_store(:,t-1),1);
-            %TODO:estimate empirical variance and use this for proposal
             empirical_variance = weightedcov(theta_store(:,:,t-1),weights_store(:,t-1));
             th_star = mvnrnd(theta_store(sample_ind,:,t-1),2*empirical_variance);
             while params.is_outside_prior(th_star) %check if in prior support
@@ -88,11 +88,9 @@ while t<=params.num_generations
                 sample_ind = discretesample(weights_store(:,t-1),1);
                 th_star =  mvnrnd(theta_store(sample_ind,:,t-1),2*empirical_variance);
             end
-            params.is_outside_prior(th_star)
-            th_star
             sstar_temp=zeros(1,params.num_ss,params.repeats);
             for r=1:params.repeats
-                sstar_temp(1,:,r) = params.test_problem(th_star,params.problem_t_end,params.recording_interval)
+                sstar_temp(1,:,r) = params.test_problem(th_star,params.problem_t_end,params.recording_interval);
             end
             total_simulations = total_simulations+1;
             %%%%%%%%%%%%%%%%%%%
@@ -111,14 +109,7 @@ while t<=params.num_generations
             end
         end
     end
-    %TODO: check this reshaping is done correctly
-    sig = mad(my_reshape(sstar),1)
-    %     if params.with_plot
-    %         figure; bar(1:2:params.num_ss,log10(1./sig(1:2:params.num_ss)),'b');
-    %         hold on; bar(2:2:params.num_ss,log10(1./sig(2:2:params.num_ss)),'y');
-    %         xlabel('weight index');
-    %         ylabel('distance weight');
-    %     end
+    sig = mad(my_reshape(sstar),1);
     if params.set_to_uniform_weights
         distance_weights_store(1,:,t) = zeros(1,params.num_ss);
     end
@@ -126,8 +117,10 @@ while t<=params.num_generations
         distance_weights_store(1,:,t) = log10(1./sig);
     end
     %%%%%%%%%%%%%%%%%%%%
-    fprintf('Generated a bunch of samples \n');
-    abc_timing = toc(my_t)-search_timing
+    if params.verbose
+        fprintf('Generated a bunch of samples \n');
+        abc_timing = toc(my_t)-search_timing
+    end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Optimise weights
@@ -142,8 +135,8 @@ while t<=params.num_generations
             [fval,is_improvement] = max([fval,fval_alt]);
             optim_weights = optim_weights_alt*(is_improvement-1) + optim_weights*(2-is_improvement);
         end
-        optim_weights
-        fval
+%        optim_weights
+%        fval
         distance_weights_store(1,:,t) = optim_weights;
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -181,20 +174,28 @@ while t<=params.num_generations
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     t=t+1;
-    fprintf('Finished optimising weights \n');
-    search_timing = toc(my_t)-abc_timing
+    if params.verbose
+        fprintf('Finished optimising weights \n');
+        search_timing = toc(my_t)-abc_timing
+    end
 end
-for i=1:(params.num_params-1)
-    figure; hold all
-    plot(theta_store(:,i,t-1),theta_store(:,i+1,t-1),'o');
+if params.with_plot
+    for i=1:(params.num_params-1)
+        figure; hold all
+        plot(theta_store(:,i,t-1),theta_store(:,i+1,t-1),'o');
+    end
 end
 
 prior_comparison = hellinger_knn_estimator(prior_sample,theta_store(:,:,t-1),5);
+if params.verbose
 fprintf('Finally, information gain over the prior is: %f \n',prior_comparison);
+end
 posterior_mean = sum((theta_store(:,:,t-1).*repmat(weights_store(:,t-1),1,params.num_params)),1)/sum(weights_store(:,t-1));
 bias = sqrt(sum((posterior_mean-params.theta_real).^2)); %using mean
 final_samples = theta_store(:,:,t-1);
+if params.verbose
 fprintf('And distance of posterior mean from real parameters is: %f \n',bias);
+end
 save(params.save_name);
 toc(my_t)
 
