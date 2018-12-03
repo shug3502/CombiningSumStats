@@ -8,8 +8,8 @@ total_sims_store = zeros(3,num_z,num_experiments);
 
 for num_particles_ind=1:num_z
     %%%%%%%%%%%%%%%%%
-    %toy_params;
-    thesis_2D_gaussian_toy_params;
+    toy_params;
+    %thesis_2D_gaussian_toy_params;
     %gaussian_toy_params;
     %bimodal_toy_params;
     %death_process_params;
@@ -20,7 +20,7 @@ for num_particles_ind=1:num_z
     parfor expt_ind = 1:num_experiments
         loop_params = params; %cannot change object from inside the parfor loop
         loop_params.x = 13*expt_ind; %set random seed for each analysis
-        [bias, total_simulations] = adaptive_ABC_KNN(loop_params);
+        [bias, total_simulations, final_samples] = adaptive_ABC_KNN(loop_params);
         mse_store(1,num_particles_ind,expt_ind)=bias;
         total_sims_store(1,num_particles_ind,expt_ind)=total_simulations;
     end
@@ -32,7 +32,7 @@ for num_particles_ind=1:num_z
     parfor expt_ind = 1:num_experiments
         loop_params = params; %cannot change object from inside the parfor loop
         loop_params.x = 13*expt_ind; %set random seed for each analysis
-        [bias, total_simulations] = adaptive_ABC_KNN(loop_params);
+        [bias, total_simulations, final_samples] = adaptive_ABC_KNN(loop_params);
         mse_store(2,num_particles_ind,expt_ind)=bias;
         total_sims_store(2,num_particles_ind,expt_ind)=total_simulations;
     end
@@ -44,7 +44,7 @@ for num_particles_ind=1:num_z
     parfor expt_ind = 1:num_experiments
         loop_params = params; %cannot change object from inside the parfor loop
         loop_params.x = 13*expt_ind; %set random seed for each analysis
-        [bias, total_simulations] = adaptive_ABC_KNN(loop_params);
+        [bias, total_simulations, final_samples] = adaptive_ABC_KNN(loop_params);
         mse_store(3,num_particles_ind,expt_ind)=bias;
         total_sims_store(3,num_particles_ind,expt_ind)=total_simulations;
     end

@@ -191,7 +191,12 @@ if params.verbose
 fprintf('Finally, information gain over the prior is: %f \n',prior_comparison);
 end
 posterior_mean = sum((theta_store(:,:,t-1).*repmat(weights_store(:,t-1),1,params.num_params)),1)/sum(weights_store(:,t-1));
-bias = sqrt(sum((posterior_mean-params.theta_real).^2)); %using mean
+if isempty(strfind(params.save_name,'toy_model'))
+    bias = sqrt(sum((posterior_mean-params.theta_real).^2)); %using mean
+else
+    stan_mean = mean(10.^csvread('stan/toy_model_stan.csv',1));
+    bias = sqrt(sum((posterior_mean-stan_mean).^2));
+end
 final_samples = theta_store(:,:,t-1);
 if params.verbose
 fprintf('And distance of posterior mean from real parameters is: %f \n',bias);

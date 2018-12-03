@@ -33,10 +33,6 @@ addpath ../ %make use can access functions in Summary_stats directory
 %run_simulations = 1;
 %include_stan_post = 0;
 
-if nargin<1
-    my_params_store; %load params (or load different params)
-end
-
 if run_simulations
     tic;
     qq = params.test_problem(params.theta_real,params.problem_t_end,params.recording_interval);
@@ -57,34 +53,37 @@ if run_simulations
             params.set_to_uniform_weights=0;
             params.set_to_scaled_weights=1;
         end
-        [prior_comparison, bias, search_timing, abc_timing, ss,...
-    final_samples, optim_weights] = adapt_weights_of_ABC_KNN(params);
-        hell_dist_store(ind) = prior_comparison;
+        [bias, total_simulations,final_samples] = adaptive_ABC_KNN(params);
+%        hell_dist_store(ind) = prior_comparison;
         bias_store(ind) = bias;
-        search_time_store(ind) = search_timing;
-        abc_time_store(ind) = abc_timing;
+%        search_time_store(ind) = search_timing;
+%        abc_time_store(ind) = abc_timing;
+    qstr = sprintf('%s_posterior_quality_%d',params.save_name,ind);
+    save(qstr);
     end
-    qstr = sprintf('../%s_posterior_quality',params.save_name);
-    save(qstr,'params','hell_dist_store','bias_store','search_time_store','abc_time_store'); %save info about quality of posterior
+    %save(qstr,'params','hell_dist_store','bias_store','search_time_store','abc_time_store'); %save info about quality of posterior
 end
 %%%%%%%%%%%%%%%%%%%%%%%
 % New plotting code
 real_theta = params.theta_real;
 %load data from running ABC-smc
 color_matrix =  [230,97,1;
-253,184,99;
-178,171,210;
-94,60,153]/256;
+		253,184,99;
+		178,171,210;
+		94,60,153]/256;
 for i=1:params.num_params
     figure; hold all;
     for j=3:-1:1 %loop over the methods for assigning the weights
-        load(sprintf('%s_posterior_plot_param%d_%d.mat',params.save_name,i,j));
-        samples = theta_store(:,i,params.num_generations);
+	qstr = sprintf('%s_posterior_quality_%d',params.save_name,j);
+	load(qstr);
+        samples = final_samples(:,i);
         [f,xi] = ksdensity(samples); 
         plot(xi,f,'LineWidth',3, 'Color', color_matrix(4-j,:));
         set(gca,'fontsize',20);
         if i==2&(~isempty(strfind(params.save_name,'death_process')))
             xlabel('$$\log_{10} \sigma $$','interpreter','latex');
+        elseif ~isempty(strfind(params.save_name,'toy_model'))
+	    xlabel('$$ \theta $$','interpreter','latex');
         else
             xlabel(sprintf('$$\\log_{10} \\theta $$'),'interpreter','latex');
             %xlabel(sprintf('$$\\log_{10} k_%d $$',i),'interpreter','latex');
@@ -96,19 +95,20 @@ for i=1:params.num_params
         if ~isempty(strfind(params.save_name,'death_process'))
             stan_samples = csvread('stan/death_process_stan_estimates.csv',1);            
         elseif ~isempty(strfind(params.save_name,'toy_model'))
-            stan_samples = csvread('stan/toy_model_stan.csv',1);
+            stan_samples = 10.^csvread('stan/toy_model_stan.csv',1);
         else 
             error('unknown model: no stan fit available');
         end
         [f,xi] = ksdensity(stan_samples(:,i)); 
         plot(xi,f,'LineWidth',3, 'Color', color_matrix(4,:));
     end
-    line([log10(real_theta(i)),log10(real_theta(i))],[0,max(max(f))],'Color','k','LineStyle','--','linewidth',3);
+%    line([log10(real_theta(i)),log10(real_theta(i))],[0,max(max(f))],'Color','k','LineStyle','--','linewidth',3);
+    line([real_theta(i),real_theta(i)],[0,max(max(f))],'Color','k','LineStyle','--','linewidth',3);
     box on    
     if ~isempty(strfind(params.save_name,'death_process')) & i==2
         xlim([-6.0,5.0])
     end
-    if i~=2
+    if i~=2 & isempty(strfind(params.save_name,'toy_model'))
         loc = 'NorthWest';
     else
         loc = 'NorthEast';
