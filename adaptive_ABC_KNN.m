@@ -88,6 +88,7 @@ while t<=params.num_generations
                 sample_ind = discretesample(weights_store(:,t-1),1);
                 th_star =  mvnrnd(theta_store(sample_ind,:,t-1),2*empirical_variance);
             end
+            th_star
             sstar_temp=zeros(1,params.num_ss,params.repeats);
             for r=1:params.repeats
                 sstar_temp(1,:,r) = params.test_problem(th_star,params.problem_t_end,params.recording_interval);
@@ -100,7 +101,8 @@ while t<=params.num_generations
                 dist(tt) = weighted_distance(sstar_temp,repmat(ss,1,1,1),10.^distance_weights_store(1,:,tt));
             end
             %accept if close enough
-            accept_check = all(dist<tolerances(1:t-1));
+            tolerances(1:(t-1))
+            accept_check = all(dist<tolerances(1:t-1))
             num_acceptances = num_acceptances + accept_check;
             if accept_check
                 theta_star(num_acceptances,:) = th_star;
